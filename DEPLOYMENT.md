@@ -12,7 +12,7 @@ This guide covers deploying the EPG Web Service on Ubuntu Server for production 
 
 ```bash
 # Clone the repository and run setup
-git clone https://github.com/YOUR_USERNAME/EPG.git /home/epg/app
+git clone https://github.com/dblancard/EPG.git /home/epg/app
 cd /home/epg/app
 python3 -m venv venv
 source venv/bin/activate
@@ -52,7 +52,7 @@ sudo su - epg
 
 # Clone your repository
 cd /home/epg
-git clone https://github.com/YOUR_USERNAME/EPG.git app
+git clone https://github.com/dblancard/EPG.git app
 cd app
 
 # Verify files
