@@ -1,5 +1,15 @@
 # README.md - EPG Web Service
 
+# EPG Web Service
+
+[![CI](https://github.com/dblancard/EPG/actions/workflows/ci.yml/badge.svg)](https://github.com/dblancard/EPG/actions/workflows/ci.yml)
+[![Deploy](https://github.com/dblancard/EPG/actions/workflows/deploy.yml/badge.svg)](https://github.com/dblancard/EPG/actions/workflows/deploy.yml)
+![License](https://img.shields.io/github/license/dblancard/EPG)
+![Python](https://img.shields.io/badge/python-3.10%2B-blue)
+![Last commit](https://img.shields.io/github/last-commit/dblancard/EPG)
+
+# README.md - EPG Web Service
+
 This is an Electronic Program Guide (EPG) web service that provides the following features:
 1. EPG data feed parsing (XML/JSON)
 2. Program data storage in SQLite database
@@ -10,7 +20,7 @@ This is an Electronic Program Guide (EPG) web service that provides the followin
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/dblancard/EPG.git
 cd epg-web
 ```
 
@@ -98,6 +108,23 @@ uvicorn epg_web.main:app --host 0.0.0.0 --port 8000 --reload
 
 ```
 epg_web/
+      If you're deploying via GitHub Actions to a server, ensure the following repository secrets are set (Settings > Secrets and variables > Actions):
+
+      | Secret | Description |
+      |--------|-------------|
+      | SSH_HOST | Public IP or DNS of your Ubuntu server |
+      | SSH_PORT | SSH port (default 22) |
+      | SSH_USER | SSH user (e.g. epg) |
+      | SSH_KEY  | Private key contents (PEM) for SSH_USER |
+      | APP_DIR  | Absolute path target (e.g. /home/epg/app) |
+
+      The `deploy.yml` workflow will:
+      1. Rsync the repository to `$APP_DIR`
+      2. Create/update a Python virtual environment
+      3. Install dependencies with `pip install -e .`
+      4. Initialize the database if missing
+      5. Restart the systemd service `epg-web`
+
 ├── src/epg_web/
 │   ├── __init__.py
 │   ├── main.py              # FastAPI application
