@@ -1,0 +1,42 @@
+sequenceDiagram
+    autonumber
+    participant User as User
+    participant Browser as Browser (UI)
+    participant FastAPI as FastAPI App
+    participant Fetcher as Fetcher Service
+    participant Parser as Parser
+    participant DB as SQLite DB
+
+    User->>Browser: Open /
+    Browser->>FastAPI: GET /
+    FastAPI-->>Browser: index.html + static assets
+    Browser->>FastAPI: GET /api/countries
+    FastAPI->>DB: SELECT channel names
+    DB-->>FastAPI: country-prefixed names
+    FastAPI-->>Browser: JSON countries
+    loop Paginate Channels
+        Browser->>FastAPI: GET /api/channels?country=CA&page=N
+        FastAPI->>DB: Query channels + program counts
+        DB-->>FastAPI: Rows
+        FastAPI-->>Browser: Channel page JSON
+    end
+  par For each channel with programs
+        Browser->>FastAPI: GET /api/schedule/{channel_id}
+        FastAPI->>DB: SELECT * FROM programs WHERE channel_id
+        DB-->>FastAPI: Program rows
+        FastAPI-->>Browser: Program list (UTC ISO8601)
+  and If user triggers refresh
+        Browser->>FastAPI: POST /api/update-from-url (URL payload)
+        FastAPI->>Fetcher: update_epg_from_url()
+        Fetcher->>Fetcher: fetch_epg_data(url)
+        Fetcher->>Parser: parse_epg_file(raw)
+  Parser-->>Fetcher: EPGData(channels, programs)
+  Fetcher->>DB: DELETE programs
+  Fetcher->>DB: DELETE channels
+        Fetcher->>DB: INSERT channels
+        Fetcher->>DB: MERGE + INSERT programs
+        DB-->>Fetcher: Commit OK
+        Fetcher-->>FastAPI: Summary (counts)
+        FastAPI-->>Browser: Update response
+    end
+    Browser->>Browser: Render grid + time indicator + hover debug

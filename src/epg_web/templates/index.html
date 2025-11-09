@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/style.css') }}?v=13">
+</head>
+<body>
+    <header>
+        <h1>Electronic Program Guide</h1>
+        <div class="header-controls">
+            <div class="control-group">
+                <label for="country-filter">Country:</label>
+                <select id="country-filter">
+                    <option value="">Loading...</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="hide-empty-channels" checked>
+                    Hide empty channels
+                </label>
+            </div>
+            <div class="control-group">
+                <label>
+                    <input type="checkbox" id="show-favorites-only">
+                    Show favorites only
+                </label>
+            </div>
+            <div class="control-group time-nav-controls">
+                <button id="scroll-left" class="nav-btn">◀ Earlier</button>
+                <button id="scroll-right" class="nav-btn">Later ▶</button>
+            </div>
+        </div>
+    </header>
+    
+    <main>
+        <div id="tv-guide-container">
+            <div id="loading-indicator" class="loading-indicator" style="display: none;">
+                Loading TV Guide...
+            </div>
+            <div id="tv-guide-grid"></div>
+                <!-- Hover debug panel for raw channel data -->
+                <div id="hover-debug-panel" class="hover-debug-panel" aria-hidden="true" style="display:none;"></div>
+        </div>
+    </main>
+    
+    <script src="{{ url_for('static', path='js/app.js') }}?v=17"></script>
+</body>
+</html>
