@@ -68,3 +68,24 @@ jobs:
           sudo systemctl restart epg-web
           sudo systemctl status --no-pager epg-web || true
           EOF
+
+      - name: Health check
+        run: |
+          ssh -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" << 'EOF'
+          set -e
+          # Give the service a few seconds to warm up
+          for i in 1 2 3 4 5; do
+            if command -v curl >/dev/null 2>&1; then
+              curl -sf http://localhost:8000/api/countries >/dev/null && break || true
+            else
+              wget -qO- http://localhost:8000/api/countries >/dev/null && break || true
+            fi
+            sleep 3
+          done
+          # Final check (fail the workflow if not responding)
+          if command -v curl >/dev/null 2>&1; then
+            curl -sf http://localhost:8000/api/countries >/dev/null
+          else
+            wget -qO- http://localhost:8000/api/countries >/dev/null
+          fi
+          EOF

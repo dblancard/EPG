@@ -119,7 +119,7 @@ User=epg
 Group=epg
 WorkingDirectory=/home/epg/app
 Environment="PATH=/home/epg/app/venv/bin"
-ExecStart=/home/epg/app/venv/bin/uvicorn epg_web.main:app --host 0.0.0.0 --port 8000 --workers 2
+ExecStart=/home/epg/app/venv/bin/python -m uvicorn epg_web.main:app --host 0.0.0.0 --port 8000 --workers 2
 
 # Restart policy
 Restart=always
@@ -141,7 +141,7 @@ ReadWritePaths=/home/epg/app
 WantedBy=multi-user.target
 ```
 
-Enable and start the service:
+# Enable and start the service:
 
 ```bash
 # Reload systemd configuration
@@ -382,6 +382,70 @@ find /home/epg/backups -name "epg-*.db" -mtime +7 -delete
 ```
 
 ## Troubleshooting
+
+### 203/EXEC error from systemd (ExecStart not executable)
+
+This indicates systemd couldn't execute the command in `ExecStart` (often due to shebang, line endings, or sandbox restrictions).
+
+Quick fix using a systemd override (recommended):
+
+```bash
+sudo systemctl edit epg-web
+```
+
+Paste the override and save:
+
+```
+[Service]
+ExecStart=
+ExecStart=/home/epg/app/venv/bin/python -m uvicorn epg_web.main:app --host 0.0.0.0 --port 8000 --workers 2
+
+# If sandbox blocks /home, relax temporarily to verify
+ProtectHome=false
+ProtectSystem=full
+```
+
+Reload and restart:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart epg-web
+sudo systemctl status epg-web
+```
+
+Re-hardening (optional, after it works):
+
+- Keep ExecStart as above.
+- Option A (keep venv under /home): set `ProtectHome=read-only` and keep `ReadWritePaths=/home/epg/app`.
+- Option B (recommended): move venv to an executable path like `/opt/epg/venv`, then you can set `ProtectHome=true` again.
+
+Move venv to /opt (once):
+
+```bash
+sudo mkdir -p /opt/epg && sudo chown epg:epg /opt/epg
+sudo su - epg
+python3 -m venv /opt/epg/venv
+source /opt/epg/venv/bin/activate
+cd /home/epg/app
+pip install --upgrade pip
+pip install -e .
+exit
+
+sudo systemctl edit epg-web
+```
+
+Update override ExecStart:
+
+```
+[Service]
+ExecStart=
+ExecStart=/opt/epg/venv/bin/python -m uvicorn epg_web.main:app --host 0.0.0.0 --port 8000 --workers 2
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/home/epg/app
+```
+
+Then reload and restart as above.
 
 ### Service Won't Start
 
